@@ -1,0 +1,79 @@
+Region,Country,Overall,Female,Male,15 to 17,18 to 35,36 to 59,60 Plus,Never Attended,Under 12,12 to 19,20 or Over,Gender Significance,Age Significance,Education Significance,ISO,"Ranking <- rank(-Overall, na.last = ""keep"")"
+Asia,Afghanistan,89,89,89,90,90,90,80,89,90,89,89,0,1,0,AF,27
+Asia,Bangladesh,88,90,86,95,89,85,87,83,93,87,92,0,0,1,BD,32
+Asia,Bhutan,85,87,82,72,83,87,93,89,85,80,77,1,1,0,BT,38
+Asia,Cambodia,96,97,96,97,97,96,94,97,96,96,NA,0,0,1,KH,2
+Asia,China,71,69,72,89,67,68,76,80,70,69,78,0,1,1,CN,53
+Asia,India,76,76,76,76,77,73,81,66,78,81,77,0,0,0,IN,52
+Asia,Indonesia,82,84,80,83,77,87,81,79,81,82,87,0,0,0,ID,41
+Asia,Iran,92,94,90,87,91,94,93,92,95,92,90,1,0,0,IR,15
+Asia,Iraq,91,93,89,91,91,92,88,93,89,93,91,1,0,0,IQ,23
+Asia,Japan,63,65,61,63,55,64,65,NA,NA,62,65,0,0,0,JP,55
+Asia,Jordan,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,JO,NA
+Asia,Kazakhstan,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,KZ,NA
+Asia,Kyrgyzstan,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,KG,NA
+Asia,Laos,82,82,82,79,80,84,85,84,84,78,83,0,0,0,LA,43
+Asia,Myanmar,93,91,94,85,93,92,98,91,92,93,94,0,1,0,MM,14
+Asia,Nepal,94,94,94,92,94,95,93,93,96,94,95,0,0,0,NP,6
+Asia,Pakistan,82,87,78,84,81,83,85,83,86,80,82,1,0,0,PK,39
+Asia,Philippines,77,80,75,78,77,80,70,NA,68,79,85,0,0,1,PH,48
+Asia,Republic of Korea,82,84,81,NA,77,84,85,NA,80,85,79,0,0,1,KR,40
+Asia,Saudi Arabia,77,83,73,78,78,77,72,87,75,76,77,1,0,0,SA,50
+Asia,Sri Lanka,91,94,89,87,90,93,91,80,96,92,90,1,0,0,LK,19
+Asia,Turkey,89,92,86,94,90,87,90,87,87,90,90,1,0,0,TR,29
+Europe,Czechia,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,CZ,NA
+Europe,France,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,FR,NA
+Europe,Germany,54,58,50,57,50,52,60,NA,100,58,47,1,1,1,DE,58
+Europe,Greece,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,GR,NA
+Europe,Italy,91,94,89,84,90,91,92,NA,97,89,95,1,0,1,IT,21
+Europe,Netherlands,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NL,NA
+Europe,Poland,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,PL,NA
+Europe,Romania,89,88,90,100,90,89,87,NA,74,91,87,0,0,0,RO,31
+Europe,Russia,62,66,57,NA,66,59,62,NA,51,62,64,1,0,0,RU,56
+Europe,Spain,81,84,78,50,84,82,81,NA,81,82,80,1,0,0,ES,45
+Europe,Sweden,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,SE,NA
+Europe,United Kingdom,76,80,73,60,80,74,78,NA,NA,74,81,1,0,1,GB,51
+Latin America and the Caribbean,Argentina,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,AR,NA
+Latin America and the Caribbean,Barbados,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,BB,NA
+Latin America and the Caribbean,Brazil,89,93,86,70,92,90,86,82,87,90,92,1,0,0,BR,28
+Latin America and the Caribbean,Colombia,94,96,93,83,95,96,90,92,92,95,97,0,1,1,CO,7
+Latin America and the Caribbean,Dominican Republic,90,89,91,88,90,92,86,87,89,91,92,0,0,0,DO,25
+Latin America and the Caribbean,Ecuador,96,96,95,93,96,96,95,97,97,95,95,0,0,0,EC,4
+Latin America and the Caribbean,El Salvador,91,90,92,88,90,92,94,92,88,93,92,0,0,0,SV,20
+Latin America and the Caribbean,Guatemala,92,91,92,92,91,93,93,87,92,93,97,0,0,1,GT,17
+Latin America and the Caribbean,Haiti,96,97,95,99,97,94,95,95,95,97,NA,0,0,1,HT,3
+Latin America and the Caribbean,Honduras,93,91,94,91,92,94,96,95,91,95,94,0,0,0,HN,13
+Latin America and the Caribbean,Mexico,94,95,93,75,94,97,96,96,95,94,92,0,0,0,MX,8
+Latin America and the Caribbean,Nicaragua,88,87,88,84,85,91,90,88,88,87,89,0,0,0,NI,33
+Latin America and the Caribbean,Paraguay,94,97,92,92,94,96,93,NA,94,94,96,1,0,0,PY,5
+Latin America and the Caribbean,Peru,92,94,89,93,90,94,88,88,87,92,95,1,0,1,PE,18
+Northern Africa,Algeria,94,96,91,94,93,94,92,97,93,94,91,1,0,0,DZ,10
+Northern Africa,Egypt,80,85,76,84,81,81,74,74,77,84,81,1,0,0,EG,47
+Northern Africa,Morocco,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,MA,NA
+Northern Africa,Sudan,77,81,73,87,72,79,87,86,85,67,63,1,1,1,SD,49
+Northern Africa,Tunisia,90,93,87,100,90,90,87,90,88,90,94,1,0,1,TN,24
+Northern America,Canada,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,CA,NA
+Northern America,United States,56,65,46,75,66,47,54,NA,70,53,59,1,0,0,US,57
+Oceania,Australia,65,72,58,67,69,64,60,NA,53,62,69,1,0,0,AU,54
+Oceania,Fiji,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,FJ,NA
+Oceania,Papua New Guinea,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,PG,NA
+Oceania,Samoa,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,WS,NA
+Oceania,Solomons Island,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,SB,NA
+Oceania,Vanuatu,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,VU,NA
+Sub-Saharan Africa,Benin,97,97,96,94,96,98,98,98,96,96,NA,0,0,0,BJ,1
+Sub-Saharan Africa,Burkina Faso,92,91,93,94,93,92,84,92,94,91,NA,0,1,1,BF,16
+Sub-Saharan Africa,Comoros,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,KM,NA
+Sub-Saharan Africa,DRC,87,89,85,87,87,86,89,92,85,88,87,0,0,0,CD,34
+Sub-Saharan Africa,Ethiopia,93,94,92,97,92,93,94,93,93,94,NA,0,0,0,ET,11
+Sub-Saharan Africa,Ghana,81,78,83,79,80,82,81,79,81,81,84,0,0,0,GH,46
+Sub-Saharan Africa,Ivory Coast,91,91,91,93,89,92,95,89,93,92,88,0,0,0,CI,22
+Sub-Saharan Africa,Kenya,85,83,87,84,85,85,88,80,84,86,89,0,0,0,KE,37
+Sub-Saharan Africa,Madagascar,89,87,91,87,87,93,87,86,90,89,NA,1,0,1,MG,30
+Sub-Saharan Africa,Mozambique,81,83,80,74,81,82,88,85,78,78,NA,0,1,0,MZ,44
+Sub-Saharan Africa,Niger,94,94,94,94,93,95,94,95,94,87,NA,0,0,0,NE,9
+Sub-Saharan Africa,Nigeria,86,85,87,79,87,87,86,82,82,91,87,0,0,0,NG,36
+Sub-Saharan Africa,South Africa,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,ZA,NA
+Sub-Saharan Africa,Tanzania,93,92,94,94,92,94,90,93,93,93,97,0,0,0,TZ,12
+Sub-Saharan Africa,Uganda,87,87,87,88,85,89,93,86,88,85,86,0,1,0,UG,35
+Sub-Saharan Africa,Zimbabwe,90,90,90,91,90,90,90,90,92,90,89,0,0,0,ZW,26
+NA,Mean of Countries,82,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,0,0,0,NA,42

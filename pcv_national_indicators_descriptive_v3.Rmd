@@ -1,0 +1,1294 @@
+---
+title: "National indicators"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    theme: lumen
+    highlight: textmate
+    df_print: paged
+    code_folding: hide
+  word_document:
+    toc: yes
+  pdf_document:
+    toc: yes
+editor_options:
+  chunk_output_type: inline
+  markdown:
+    wrap: 72
+---
+
+<style>
+  /* Set maximum width for content */
+  body {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  
+  /* Set maximum width for figures */
+  .figure {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  
+  /* Set actual width of figures */
+  .figure img {
+    width: 400px;
+  }
+  
+  /* Adjust position of floating TOC */
+  .tocify {
+    position: fixed;
+    top: 5px; /* Adjust this value as desired */
+    left: 200px;
+  }
+  
+  /* Left align TOC items */
+  .tocify-item {
+    text-align: left;
+  }
+
+  /* Left align TOC item sub-items */
+  .tocify-subitem {
+    text-align: left;
+  }
+  
+  /* Change the size of h1, h2, h3 headings */
+  h1 {
+    font-size: 26px; 
+    margin-top: 100px; /* Adjusted comment closure */
+  }
+  h2 {
+    font-size: 28px;
+    margin-top: 50px; /* Adjusted comment closure */
+  }
+  h3 {
+    font-size: 24px; /* Adjusted comment closure */
+  }
+</style>
+
+<!-- output: -->
+<!--   prettydoc::html_pretty: -->
+<!--     theme: architect -->
+<!--     highlight: github -->
+<!--     toc: true -->
+
+
+
+# Notes
+
+- 'Support' indicates agreement with question phrasing stated in plot title: combining all relevant agreement levels from the question.
+
+
+# Setup
+
+```{=html}
+<style> body {text-align: justify} </style>
+```
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE) # Set this to TRUE to show code.
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) # This hides some printed outputs
+```
+
+```{r}
+# Packages
+library(tidyverse)
+library(ggplot2)
+library(rmarkdown)
+library(scales)
+library(ggrepel)
+```
+
+```{r}
+# Reading and merging
+
+# Question files
+for (i in 1:15) {
+  file_name <- paste0("question_", i, ".csv")
+
+  var_name <- paste0("question_", i)
+
+  assign(var_name, read.csv(file_name))
+}
+
+national_data <- read.csv("national_data_v1.csv")
+national_data <- rename(national_data, ISO = iso2_code)
+
+# Matching to national data
+for (i in 1:15) {
+  question_var_name <- paste("question", i, sep = "_")
+
+  assign(question_var_name, head(left_join(get(question_var_name), national_data, by = "ISO"), -1))
+}
+
+# Creating gender gap variable
+for (i in 1:15) {
+  question_var_name <- paste("question", i, sep = "_")
+
+  assign(question_var_name, mutate(get(question_var_name),
+    gender_gap = Female - Male
+  ))
+}
+```
+
+```{r}
+# Filter main
+for (i in 1:15) {
+  question_var_name <- paste("question", i, sep = "_")
+  filtered_question_var_name <- paste("filtered_question", i, sep = "_")
+
+  temp_data <- get(question_var_name)
+  filtered_data <- temp_data[!is.na(temp_data$Overall), ]
+
+  assign(filtered_question_var_name, filtered_data)
+}
+```
+
+
+# Headline stats distribution
+
+```{r}
+# Assuming 'filtered_questions' is a list of data frames where each data frame corresponds to a question's data
+filtered_questions <- list(filtered_question_1, filtered_question_2, filtered_question_3, filtered_question_4, filtered_question_5, filtered_question_6, filtered_question_7, filtered_question_8, filtered_question_9, filtered_question_10, filtered_question_11, filtered_question_12, filtered_question_13, filtered_question_14, filtered_question_15)
+
+# Titles for each plot
+plot_titles <- c(
+  "Question 1 (think often about climate change): Distribution of support across countries",
+  "Question 2 (more worried c/w last year) : Distribution of support across countries",
+  "Question 3 (worried about next gen)  : Distribution of support across countries",
+  "Question 4 (extreme weather - worse) : Distribution of support across countries",
+  "Question 5 (affected big decisions) : Distribution of support across countries",
+  "Question 6 (how well country addressing) : Distribution of support across countries",
+  "Question 7 (how well are big businesses addressing) : Distribution of support across countries",
+  "Question 8 (gov't has most impact addressing) : Distribution of support across countries",
+  "Question 9 (country should strengthen commitments) : Distribution of support across countries",
+  "Question 10 (country should replace fossil fuels more quickly) : Distribution of support across countries",
+  "Question 11 (country should protect and restore nature) : Distribution of support across countries",
+  "Question 12 (country should provide support to protect people at risk) : Distribution of support across countries",
+  "Question 13 (countries should work together) : Distribution of support across countries",
+  "Question 14 (rich countries should give more) : Distribution of support across countries",
+  "Question 15 (schools should teach more) : Distribution of support across countries"
+)
+
+# Function to create plot
+create_plot <- function(data, title) {
+  ggplot(data, aes(x = Overall)) +
+    geom_histogram(binwidth = 0.5, fill = "#add8e6") +
+    scale_x_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+    theme_minimal() +
+    theme(
+      plot.title = element_text(margin = margin(b = 20)),
+      legend.position = "bottom",
+      axis.title.x = element_text(margin = margin(t = 10)),
+      axis.title.y = element_text(margin = margin(r = 10)),
+      axis.line.x = element_blank(),
+      axis.ticks.x = element_blank()
+    ) +
+    labs(
+      title = title,
+      x = "Support",
+      y = "Frequency"
+    )
+}
+
+# Loop to create each plot
+for (i in 1:length(filtered_questions)) {
+  print(create_plot(filtered_questions[[i]], plot_titles[i]))
+}
+```
+
+# Policy support vs CO2
+
+```{r}
+# Question 9
+ggplot(filtered_question_9, aes(x = co2_per_capita_owid, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 9 (country should strengthen commitments)\nagainst CO2 per capita",
+    x = "Annual CO2 per capita (tonnes per person)",
+    y = "Question 9 support"
+  )
+
+# Question 10
+ggplot(filtered_question_10, aes(x = co2_per_capita_owid, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 10 (country should replace fossil fuels more quickly)\nagainst CO2 per capita",
+    x = "Annual CO2 per capita (tonnes per person)",
+    y = "Question 10 support"
+  )
+```
+
+
+# Policy support vs GDP pc
+
+```{r}
+# Question 9
+ggplot(filtered_question_9, aes(x = real_gdp_ppp_pc_cia, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(labels = dollar_format(scaling = 0.001)) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 9 (country should strengthen commitments)\nagainst GDP per capita",
+    x = "GDP PPP per capita",
+    y = "Question 9 support"
+  )
+
+# Question 10
+ggplot(filtered_question_10, aes(x = real_gdp_ppp_pc_cia, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(labels = dollar_format(scaling = 0.001)) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 10 (country should replace fossil fuels more quickly)\nagainst GDP per capita",
+    x = "GDP PPP per capita",
+    y = "Question 10 support"
+  )
+```
+
+
+# Policy support vs GDP PPP
+
+```{r}
+# Question 9
+ggplot(filtered_question_9, aes(x = real_gdp_ppp_cia, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(labels = dollar_format(scaling = 0.001)) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 9 (country should strengthen commitments)\nagainst GDP",
+    x = "GDP PPP",
+    y = "Question 9 support"
+  )
+
+# Question 10
+ggplot(filtered_question_10, aes(x = real_gdp_ppp_cia, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(labels = dollar_format(scaling = 0.001)) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 10 (country should replace fossil fuels more quickly)\nagainst GDP",
+    x = "GDP PPP",
+    y = "Question 10 support"
+  )
+```
+
+
+
+# Policy support vs oil production
+
+```{r}
+# Question 9
+ggplot(filtered_question_9, aes(x = oil_production_ei, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(labels = comma_format()) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 9 (country should strengthen commitments)\nagainst oil production",
+    x = "Oil production (terawatt-hours)",
+    y = "Question 9 support"
+  )
+
+# Question 10
+ggplot(filtered_question_10, aes(x = oil_production_ei, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(labels = comma_format()) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 10 (country should replace fossil fuels more quickly)\nagainst oil production",
+    x = "Oil production (terawatt-hours)",
+    y = "Question 10 support"
+  )
+```
+
+# Policy support vs coal production
+
+```{r}
+# Question 9
+ggplot(filtered_question_9, aes(x = coal_production_ei, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(labels = comma_format()) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 9 (country should strengthen commitments)\nagainst coal production",
+    x = "Coal production (terawatt-hours)",
+    y = "Question 9 support"
+  )
+
+# Question 10
+ggplot(filtered_question_10, aes(x = coal_production_ei, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(labels = comma_format()) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 10 (country should replace fossil fuels more quickly)\nagainst coal production",
+    x = "Coal production (terawatt-hours)",
+    y = "Question 10 support"
+  )
+```
+
+# Policy support vs subset of coal producers
+
+```{r}
+# Top 10%
+top_coal <- quantile(filtered_question_9$coal_production_ei, 0.80, na.rm = T)
+filtered_question_9_coal <- subset(filtered_question_9, coal_production_ei >= top_coal)
+filtered_question_10_coal <- subset(filtered_question_10, coal_production_ei >= top_coal)
+filtered_question_9_coal_nochina <- subset(filtered_question_9_coal, Country != "China")
+filtered_question_10_coal_nochina <- subset(filtered_question_10_coal, Country != "China")
+
+# Question 9
+ggplot(filtered_question_9_coal, aes(x = coal_production_ei, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text_repel(aes(label = Country), nudge_y = 6, size = 3, 
+                  segment.color = 'grey50') +
+  scale_x_continuous(labels = comma_format()) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 110), breaks = seq(0, 100, 25)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 9 (country should strengthen commitments)\nagainst coal production: top 20% producers",
+    x = "Coal production (terawatt-hours)",
+    y = "Question 9 support"
+  )
+
+
+# Question 10
+ggplot(filtered_question_10_coal, aes(x = coal_production_ei, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text_repel(aes(label = Country), nudge_y = 6, size = 3, 
+                  segment.color = 'grey50') +
+  scale_x_continuous(labels = comma_format()) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 110), breaks = seq(0, 100, 25)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 10 (country should replace fossil fuels more quickly)\nagainst coal production: top 20% producers",
+    x = "Coal production (terawatt-hours)",
+    y = "Question 10 support"
+  )
+
+# Without China
+# Question 9
+ggplot(filtered_question_9_coal_nochina, aes(x = coal_production_ei, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text_repel(aes(label = Country), nudge_y = 6, size = 3, 
+                  segment.color = 'grey50') +
+  scale_x_continuous(labels = comma_format()) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 110), breaks = seq(0, 100, 25)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 9 (country should strengthen commitments)\nagainst coal production: top 20% producers w/o China",
+    x = "Coal production (terawatt-hours)",
+    y = "Question 9 support"
+  )
+
+# Question 10
+ggplot(filtered_question_10_coal_nochina, aes(x = coal_production_ei, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text_repel(aes(label = Country), nudge_y = 6, size = 3, 
+                  segment.color = 'grey50') +
+  scale_x_continuous(labels = comma_format()) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 110), breaks = seq(0, 100, 25)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 10 (country should replace fossil fuels more quickly)\nagainst coal production: top 20% producers w/o China",
+    x = "Coal production (terawatt-hours)",
+    y = "Question 10 support"
+  )
+
+# Check significance
+topcoal9_nochina <- lm(Overall ~ coal_production_ei, data = filtered_question_9_coal_nochina)
+topcoal10_nochina <- lm(Overall ~ coal_production_ei, data = filtered_question_10_coal_nochina)
+
+summary(topcoal9_nochina)
+summary(topcoal10_nochina)
+
+```
+
+
+# Policy support vs gas production
+
+```{r}
+# Question 9
+ggplot(filtered_question_9, aes(x = gas_production_ei, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(labels = comma_format()) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 9 (country should strengthen commitments)\nagainst gas production",
+    x = "Gas production (terawatt-hours)",
+    y = "Question 9 support"
+  )
+
+# Question 10
+ggplot(filtered_question_10, aes(x = gas_production_ei, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(labels = comma_format()) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 10 (country should replace fossil fuels more quickly)\nagainst gas production",
+    x = "Gas production (terawatt-hours)",
+    y = "Question 10 support"
+  )
+```
+
+
+
+# Policy support vs renewables
+
+```{r}
+# Question 9
+ggplot(filtered_question_9, aes(x = renewable_ei, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(labels = function(x) paste0(x, "%"), limits = c(min(filtered_question_9$renewable_ei, na.rm = TRUE), max(filtered_question_9$renewable_ei, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 9 (country should strengthen commitments)\nagainst renewables",
+    x = "Renewables (share of energy consumption)",
+    y = "Question 9 support"
+  )
+
+# Question 10
+ggplot(filtered_question_10, aes(x = renewable_ei, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(labels = function(x) paste0(x, "%"), limits = c(min(filtered_question_10$renewable_ei, na.rm = TRUE), max(filtered_question_10$renewable_ei, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 10 (country should replace fossil fuels more quickly)\nagainst renewables",
+    x = "Renewables (share of energy consumption)",
+    y = "Question 10 support"
+  )
+```
+
+
+
+# HDI overall
+
+```{r}
+filtered_question_1$hdi_undp <- as.numeric(filtered_question_1$hdi_undp)
+filtered_question_2$hdi_undp <- as.numeric(filtered_question_2$hdi_undp)
+filtered_question_3$hdi_undp <- as.numeric(filtered_question_3$hdi_undp)
+filtered_question_4$hdi_undp <- as.numeric(filtered_question_4$hdi_undp)
+filtered_question_5$hdi_undp <- as.numeric(filtered_question_5$hdi_undp)
+filtered_question_6$hdi_undp <- as.numeric(filtered_question_6$hdi_undp)
+filtered_question_7$hdi_undp <- as.numeric(filtered_question_7$hdi_undp)
+filtered_question_8$hdi_undp <- as.numeric(filtered_question_8$hdi_undp)
+filtered_question_9$hdi_undp <- as.numeric(filtered_question_9$hdi_undp)
+filtered_question_10$hdi_undp <- as.numeric(filtered_question_10$hdi_undp)
+filtered_question_11$hdi_undp <- as.numeric(filtered_question_11$hdi_undp)
+filtered_question_12$hdi_undp <- as.numeric(filtered_question_12$hdi_undp)
+filtered_question_13$hdi_undp <- as.numeric(filtered_question_13$hdi_undp)
+filtered_question_14$hdi_undp <- as.numeric(filtered_question_14$hdi_undp)
+filtered_question_15$hdi_undp <- as.numeric(filtered_question_15$hdi_undp)
+
+filtered_questions <- list(
+  filtered_question_1, filtered_question_2, filtered_question_3,
+  filtered_question_4, filtered_question_5, filtered_question_6,
+  filtered_question_7, filtered_question_8, filtered_question_9,
+  filtered_question_10, filtered_question_11, filtered_question_12,
+  filtered_question_13, filtered_question_14, filtered_question_15
+)
+
+create_plot <- function(data, title) {
+  ggplot(data, aes(x = hdi_undp, y = Overall, colour = Region)) +
+    geom_point() +
+    geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+    geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+    scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+    scale_x_continuous(limits = c(min(data$hdi_undp, na.rm = TRUE), max(data$hdi_undp, na.rm = TRUE))) +
+    theme_minimal() +
+    theme(
+      plot.title = element_text(margin = margin(b = 20)),
+      legend.position = "bottom",
+      axis.title.x = element_text(margin = margin(t = 10)),
+      axis.title.y = element_text(margin = margin(r = 10))
+    ) +
+    labs(
+      title = title,
+      x = "HDI",
+      y = paste("Support")
+    )
+}
+
+for (i in seq_along(filtered_questions)) {
+  print(create_plot(filtered_questions[[i]], plot_titles[i]))
+}
+```
+
+
+
+# HDI gender gap
+
+```{r}
+# Question 3
+ggplot(filtered_question_3, aes(x = hdi_undp, y = gender_gap, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-25, 25)) +
+  scale_x_continuous(limits = c(min(filtered_question_3$hdi_undp, na.rm = TRUE), max(filtered_question_3$hdi_undp, na.rm = TRUE))) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 3 (worried about next gen)  against HDI gender gap",
+    x = "HDI",
+    y = "Question 3 gender gap (women over men)"
+  )
+
+# Question 9
+ggplot(filtered_question_9, aes(x = hdi_undp, y = gender_gap, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-25, 25)) +
+  scale_x_continuous(limits = c(min(filtered_question_9$hdi_undp, na.rm = TRUE), max(filtered_question_9$hdi_undp, na.rm = TRUE))) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 9 (country should strengthen commitments)\nagainst HDI gender gap",
+    x = "HDI",
+    y = "Question 9 gender gap (women over men)"
+  )
+
+# Question 10
+ggplot(filtered_question_10, aes(x = hdi_undp, y = gender_gap, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-25, 25)) +
+  scale_x_continuous(limits = c(min(filtered_question_10$hdi_undp, na.rm = TRUE), max(filtered_question_10$hdi_undp, na.rm = TRUE))) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 10 (country should replace fossil fuels more quickly)\nagainst HDI gender gap",
+    x = "HDI",
+    y = "Question 10 gender gap (women over men)"
+  )
+```
+
+
+
+# Policy support vs Islam
+
+```{r}
+# Question 9
+ggplot(filtered_question_9, aes(x = islam_pew, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(labels = function(x) paste0(x, "%"), limits = c(min(filtered_question_9$islam_pew, na.rm = TRUE), max(filtered_question_9$islam_pew, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 9 (country should strengthen commitments)\nagainst Islam",
+    x = "Muslim pc of population",
+    y = "Question 9 support"
+  )
+
+# Question 10
+ggplot(filtered_question_10, aes(x = islam_pew, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(labels = function(x) paste0(x, "%"), limits = c(min(filtered_question_10$islam_pew, na.rm = TRUE), max(filtered_question_10$islam_pew, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 10 (country should replace fossil fuels more quickly)\nagainst Islam",
+    x = "Muslim pc of population",
+    y = "Question 10 support"
+  )
+```
+
+
+
+# Experiences of climate change vs expression of experience
+
+```{r}
+# Natural disasters
+# Question 1
+ggplot(filtered_question_1, aes(x = natural_disasters_imf, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_1$natural_disasters_imf, na.rm = TRUE), max(filtered_question_1$natural_disasters_imf, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 1 (think often about climate change)\nagainst natural disasters",
+    x = "Natural disasters yearly average 2017-2022",
+    y = "Question 1 support"
+  )
+
+# Question 2
+ggplot(filtered_question_2, aes(x = natural_disasters_imf, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_2$natural_disasters_imf, na.rm = TRUE), max(filtered_question_2$natural_disasters_imf, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 2 (more worried c/w last year)\nagainst natural disasters",
+    x = "Natural disasters yearly average 2017-2022",
+    y = "Question 2 support"
+  )
+
+# Surface temp
+# Question 1
+ggplot(filtered_question_1, aes(x = surface_temp_imf, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_1$surface_temp_imf, na.rm = TRUE), max(filtered_question_1$surface_temp_imf, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 1 (think often about climate change)\nagainst surface temp",
+    x = "Mean surface temp change 1961-2021",
+    y = "Question 1 support"
+  )
+
+# Question 2
+ggplot(filtered_question_2, aes(x = surface_temp_imf, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_2$surface_temp_imf, na.rm = TRUE), max(filtered_question_2$surface_temp_imf, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 2 (more worried c/w last year)\nagainst surface temp",
+    x = "Mean surface temp change 1961-2021",
+    y = "Question 2 support"
+  )
+```
+
+
+# Experiences of climate change vs policy support
+
+```{r}
+# Natural disasters
+
+# Question 9
+ggplot(filtered_question_9, aes(x = natural_disasters_imf, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_9$natural_disasters_imf, na.rm = TRUE), max(filtered_question_9$natural_disasters_imf, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 9 (country should strengthen commitments)\nagainst natural disasters",
+    x = "Natural disasters yearly average 2017-2022",
+    y = "Question 9 support"
+  )
+
+# Question 10
+ggplot(filtered_question_10, aes(x = natural_disasters_imf, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_10$natural_disasters_imf, na.rm = TRUE), max(filtered_question_10$natural_disasters_imf, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 10 (country should replace fossil fuels more quickly)\nagainst natural disasters",
+    x = "Natural disasters yearly average 2017-2022",
+    y = "Question 10 support"
+  )
+
+# Question 12
+ggplot(filtered_question_12, aes(x = natural_disasters_imf, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_12$natural_disasters_imf, na.rm = TRUE), max(filtered_question_12$natural_disasters_imf, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 12 (country should provide support to protect people at risk)\nagainst natural disasters",
+    x = "Natural disasters yearly average 2017-2022",
+    y = "Question 12 support"
+  )
+
+# Surface temp
+# Question 9
+ggplot(filtered_question_9, aes(x = surface_temp_imf, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_9$surface_temp_imf, na.rm = TRUE), max(filtered_question_9$surface_temp_imf, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 9 (country should strengthen commitments)\nagainst surface temp",
+    x = "Mean surface temp change 1961-2021",
+    y = "Question 9 support"
+  )
+
+
+# Question 10
+ggplot(filtered_question_10, aes(x = surface_temp_imf, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_10$surface_temp_imf, na.rm = TRUE), max(filtered_question_10$surface_temp_imf, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 10 (country should replace fossil fuels more quickly)\nagainst surface temp",
+    x = "Mean surface temp change 1961-2021",
+    y = "Question 10 support"
+  )
+
+# Question 12
+ggplot(filtered_question_12, aes(x = surface_temp_imf, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_12$surface_temp_imf, na.rm = TRUE), max(filtered_question_12$surface_temp_imf, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 12 (country should provide support to protect people at risk)\nagainst surface temp",
+    x = "Mean surface temp change 1961-2021",
+    y = "Question 12 support"
+  )
+```
+
+# Regime type
+
+```{r}
+# Question 6
+ggplot(filtered_question_6, aes(x = electdem_vdem, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_6$electdem_vdem, na.rm = TRUE), max(filtered_question_6$electdem_vdem, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 6 (how well country addressing)\nagainst Electoral democracy",
+    x = "Electoral democracy score",
+    y = "Question 6 support"
+  )
+
+ggplot(filtered_question_6, aes(x = libdem_vdem, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_6$libdem_vdem, na.rm = TRUE), max(filtered_question_6$libdem_vdem, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 6 (how well country addressing)\nagainst Liberal democracy",
+    x = "Liberal democracy score",
+    y = "Question 6 support"
+  )
+
+ggplot(filtered_question_6, aes(x = participdem_vdem, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_6$participdem_vdem, na.rm = TRUE), max(filtered_question_6$participdem_vdem, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 6 (how well country addressing)\nagainst participatory democracy",
+    x = "Participatory democracy score",
+    y = "Question 6 support"
+  )
+
+ggplot(filtered_question_6, aes(x = delibdem_vdem, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_6$delibdem_vdem, na.rm = TRUE), max(filtered_question_6$delibdem_vdem, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 6 (how well country addressing)\nagainst deliberative democracy",
+    x = "Deliberative democracy score",
+    y = "Question 6 support"
+  )
+
+ggplot(filtered_question_6, aes(x = egaldem_vdem, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_6$egaldem_vdem, na.rm = TRUE), max(filtered_question_6$egaldem_vdem, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 6 (how well country addressing)\nagainst egalitarian democracy",
+    x = "Egalitarian democracy score",
+    y = "Question 6 support"
+  )
+
+# Question 9
+ggplot(filtered_question_9, aes(x = electdem_vdem, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_9$electdem_vdem, na.rm = TRUE), max(filtered_question_9$electdem_vdem, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 9 (country should strengthen commitments)\nagainst Electoral democracy",
+    x = "Electoral democracy score",
+    y = "Question 9 support"
+  )
+
+ggplot(filtered_question_9, aes(x = libdem_vdem, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_9$libdem_vdem, na.rm = TRUE), max(filtered_question_9$libdem_vdem, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 9 (country should strengthen commitments)\nagainst Liberal democracy",
+    x = "Liberal democracy score",
+    y = "Question 9 support"
+  )
+
+ggplot(filtered_question_9, aes(x = participdem_vdem, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_9$participdem_vdem, na.rm = TRUE), max(filtered_question_9$participdem_vdem, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 9 (country should strengthen commitments)\nagainst participatory democracy",
+    x = "Participatory democracy score",
+    y = "Question 9 support"
+  )
+
+ggplot(filtered_question_9, aes(x = delibdem_vdem, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_9$delibdem_vdem, na.rm = TRUE), max(filtered_question_9$delibdem_vdem, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 9 (country should strengthen commitments)\nagainst deliberative democracy",
+    x = "Deliberative democracy score",
+    y = "Question 9 support"
+  )
+
+ggplot(filtered_question_9, aes(x = egaldem_vdem, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_9$egaldem_vdem, na.rm = TRUE), max(filtered_question_9$egaldem_vdem, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 9 (country should strengthen commitments)\nagainst egalitarian democracy",
+    x = "Egalitarian democracy score",
+    y = "Question 9 support"
+  )
+
+# Question 10
+ggplot(filtered_question_10, aes(x = electdem_vdem, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_10$electdem_vdem, na.rm = TRUE), max(filtered_question_10$electdem_vdem, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 10 (country should replace fossil fuels more quickly)\nagainst Electoral democracy",
+    x = "Electoral democracy score",
+    y = "Question 10 support"
+  )
+
+ggplot(filtered_question_10, aes(x = libdem_vdem, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_10$libdem_vdem, na.rm = TRUE), max(filtered_question_10$libdem_vdem, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 10 (country should replace fossil fuels more quickly)\nagainst Liberal democracy",
+    x = "Liberal democracy score",
+    y = "Question 10 support"
+  )
+
+ggplot(filtered_question_10, aes(x = participdem_vdem, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_10$participdem_vdem, na.rm = TRUE), max(filtered_question_10$participdem_vdem, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 10 (country should replace fossil fuels more quickly)\nagainst participatory democracy",
+    x = "Participatory democracy score",
+    y = "Question 10 support"
+  )
+
+ggplot(filtered_question_10, aes(x = delibdem_vdem, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_10$delibdem_vdem, na.rm = TRUE), max(filtered_question_10$delibdem_vdem, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 10 (country should replace fossil fuels more quickly)\nagainst deliberative democracy",
+    x = "Deliberative democracy score",
+    y = "Question 10 support"
+  )
+
+ggplot(filtered_question_10, aes(x = egaldem_vdem, y = Overall, colour = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, colour = "black", size = 0.25) +
+  geom_text(aes(label = Country), nudge_y = 4, check_overlap = TRUE, size = 3) +
+  scale_x_continuous(limits = c(min(filtered_question_10$egaldem_vdem, na.rm = TRUE), max(filtered_question_10$egaldem_vdem, na.rm = TRUE))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100)) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(margin = margin(b = 20)),
+    legend.position = "bottom",
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  labs(
+    title = "Question 10 (country should replace fossil fuels more quickly)\nagainst egalitarian democracy",
+    x = "Egalitarian democracy score",
+    y = "Question 10 support"
+  )
+```
