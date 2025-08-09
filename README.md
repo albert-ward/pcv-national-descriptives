@@ -1,2 +1,2 @@
 # pcv-national-descriptives
-Country-level visualisation and descriptives for the Peoples' Climate Vote 2024
+Basic file to generate national level indicators for PCV data 
